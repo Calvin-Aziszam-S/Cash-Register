@@ -1,6 +1,12 @@
-let price = 3.26;
-let cash = 5;
+const cashInput = document.getElementById("cash");
+const purchaseButton = document.getElementById("purchase-btn");
+const changeDueContainer = document.getElementById("change-container");
+const changeDueText = document.getElementById("change-due");
+const cidContainer = document.getElementById("cid-container");
+const cidText = document.getElementById("cid");
+const priceText = document.getElementById("price-text");
 
+let price = 3.26;
 let cid = [
 	["PENNY", 1.01],
 	["NICKEL", 2.05],
@@ -13,54 +19,84 @@ let cid = [
 	["ONE HUNDRED", 100],
 ];
 
-if (price > Number(cash)) {
-	console.log("Customer does not have enough money to purchase the item");
-}
+const currencyName = {
+	PENNY: "Pennies",
+	NICKEL: "Nickels",
+	DIME: "Dimes",
+	QUARTER: "Quarters",
+	ONE: "Ones",
+	FIVE: "Fives",
+	TEN: "Tens",
+	TWENTY: "Twenties",
+	"ONE HUNDRED": "Hundreds",
+};
 
-if (price === Number(cash)) {
-	console.log("No change due - customer paid with exact cash");
-}
+priceText.innerText = `Price: $${price}`;
+cidText.innerHTML = cid
+	.map((e) => `<p>${currencyName[e[0]]}: $${e[1]}</p>`)
+	.join("");
 
-let change = Math.round(Number(cash) * 100 - price * 100);
-let reverseCid = [...cid].reverse();
-let denominations = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
-let denomNorm = denominations.map((e) => e * 100);
-let result = { status: "OPEN", change: [] };
-let valueCid = cid.map((e) => Math.round(e[1] * 100));
-let totalCid = valueCid.reduce((prev, curr) => prev + curr);
+function checkCashRegister() {
+	if (!cashInput.value) {
+		return;
+	}
 
-// console.log(reverseCid[0]);
+	if (Number(cashInput.value) < price) {
+		alert("Customer does not have enough money to purchase the item");
+	}
 
-if (totalCid < change) {
-	console.log("INSUFFICIENT_FUNDS");
-}
+	if (cashInput.value == price) {
+		changeDueText.innerText = `No change due - customer paid with exact cash`;
+		changeDueContainer.style.display = "flex";
+	}
 
-if (totalCid === change) {
-	console.log("CLOSED");
-}
+	let changeDue = parseFloat(Number(cashInput.value) - price).toFixed(2);
+	let totalCid = cid
+		.map((e) => e[1])
+		.reduce((prev, curr) => prev + curr)
+		.toFixed(2);
+	let result = { status: "OPEN", change: [] };
+	const cidReversed = [...cid].reverse();
+	const denominations = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
 
-for (let i = 0; i < reverseCid.length; i++) {
-	if (change >= denomNorm[i]) {
-		let count = 0;
-		let total = Math.round(reverseCid[i][1] * 100);
-		while (total > 0 && change >= denomNorm[i]) {
-			total -= denomNorm[i];
-			change -= denomNorm[i];
-			count++;
-		}
-		if (count > 0) {
-			result.change.push([reverseCid[i][0], count * denominations[i]]);
+	if (totalCid < changeDue) {
+		console.log("Status: INSUFFICIENT_FUNDS");
+	}
+
+	if (totalCid === changeDue) {
+		console.log("Status: CLOSED");
+	}
+
+	for (let i = 0; i < cidReversed.length; i++) {
+		if (changeDue > denominations[i]) {
+			let total = cidReversed[i][1];
+			let count = 0;
+			while (total > 0 && changeDue >= denominations[i]) {
+				changeDue = parseFloat((changeDue - denominations[i]).toFixed(2));
+				total = parseFloat(total - denominations[i].toFixed(2));
+				count++;
+			}
+			if (count > 0) {
+				result.change.push([
+					cidReversed[i][0],
+					parseFloat(denominations[i] * count).toFixed(2),
+				]);
+			}
 		}
 	}
-}
-
-if (result.change) {
 	result.change.forEach((e) => {
-		const targetArr = cid.find((c) => c[0] === e[0]);
-		targetArr[1] -= e[1];
-		// console.log(targetArr);
+		const target = cid.find((x) => x[0] === e[0]);
+		target[1] = parseFloat((target[1] - e[1]).toFixed(2));
 	});
+	cashInput.value = "";
+	priceText.innerText = `Price: $${price}`;
+	cidText.innerHTML = cid
+		.map((e) => `<p>${currencyName[e[0]]}: $${e[1]}</p>`)
+		.join("");
+
+	changeDueContainer.style.display = "flex";
+	changeDueText.innerHTML = `<p>Status: ${result.status}</p>
+	${result.change.map((e) => `<p>${e[0]}: $${e[1]}</p>`).join("")}`;
 }
 
-console.log(result);
-cid.map((e) => console.log(e));
+purchaseButton.addEventListener("click", checkCashRegister);
