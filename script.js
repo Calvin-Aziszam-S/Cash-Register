@@ -6,17 +6,17 @@ const cidContainer = document.getElementById("cid-container");
 const cidText = document.getElementById("cid");
 const priceText = document.getElementById("price-text");
 
-let price = 3.26;
+let price = 19.5;
 let cid = [
-	["PENNY", 1.01],
-	["NICKEL", 2.05],
-	["DIME", 3.1],
-	["QUARTER", 4.25],
-	["ONE", 90],
-	["FIVE", 55],
-	["TEN", 20],
-	["TWENTY", 60],
-	["ONE HUNDRED", 100],
+	["PENNY", 0.01],
+	["NICKEL", 0],
+	["DIME", 0],
+	["QUARTER", 0],
+	["ONE", 1],
+	["FIVE", 0],
+	["TEN", 0],
+	["TWENTY", 0],
+	["ONE HUNDRED", 0],
 ];
 
 const currencyName = {
@@ -43,28 +43,36 @@ function checkCashRegister() {
 
 	if (Number(cashInput.value) < price) {
 		alert("Customer does not have enough money to purchase the item");
+		return;
 	}
 
-	if (cashInput.value == price) {
+	if (Number(cashInput.value) === price) {
 		changeDueText.innerText = `No change due - customer paid with exact cash`;
 		changeDueContainer.style.display = "flex";
+		return;
 	}
 
 	let changeDue = parseFloat(Number(cashInput.value) - price).toFixed(2);
-	let totalCid = cid
-		.map((e) => e[1])
-		.reduce((prev, curr) => prev + curr)
-		.toFixed(2);
+	let totalCid = parseFloat(
+		cid
+			.map((e) => e[1])
+			.reduce((prev, curr) => prev + curr)
+			.toFixed(2)
+	);
 	let result = { status: "OPEN", change: [] };
 	const cidReversed = [...cid].reverse();
 	const denominations = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
 
 	if (totalCid < changeDue) {
-		console.log("Status: INSUFFICIENT_FUNDS");
+		changeDueContainer.style.display = "flex";
+		changeDueText.innerHTML = `<p>Status: INSUFFICIENT_FUNDS</p>`;
+		return;
 	}
 
 	if (totalCid === changeDue) {
-		console.log("Status: CLOSED");
+		changeDueContainer.style.display = "flex";
+		changeDueText.innerHTML = `<p>Status: CLOSED</p>`;
+		return;
 	}
 
 	for (let i = 0; i < cidReversed.length; i++) {
@@ -84,10 +92,18 @@ function checkCashRegister() {
 			}
 		}
 	}
+
+	if (changeDue > 0) {
+		changeDueContainer.style.display = "flex";
+		changeDueText.innerHTML = "<p>Status: INSUFFICIENT_FUNDS</p>";
+		return;
+	}
+
 	result.change.forEach((e) => {
 		const target = cid.find((x) => x[0] === e[0]);
 		target[1] = parseFloat((target[1] - e[1]).toFixed(2));
 	});
+
 	cashInput.value = "";
 	priceText.innerText = `Price: $${price}`;
 	cidText.innerHTML = cid
@@ -100,3 +116,9 @@ function checkCashRegister() {
 }
 
 purchaseButton.addEventListener("click", checkCashRegister);
+
+cashInput.addEventListener("keypress", (e) => {
+	if (e.key === "Enter") {
+		checkCashRegister();
+	}
+});
