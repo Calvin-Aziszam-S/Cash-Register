@@ -8,15 +8,15 @@ const priceText = document.getElementById("price-text");
 
 let price = 19.5;
 let cid = [
-	["PENNY", 0.01],
-	["NICKEL", 0],
-	["DIME", 0],
-	["QUARTER", 0],
-	["ONE", 1],
-	["FIVE", 0],
-	["TEN", 0],
-	["TWENTY", 0],
-	["ONE HUNDRED", 0],
+	["PENNY", 1.01],
+	["NICKEL", 2.05],
+	["DIME", 3.1],
+	["QUARTER", 4.25],
+	["ONE", 90],
+	["FIVE", 55],
+	["TEN", 20],
+	["TWENTY", 60],
+	["ONE HUNDRED", 100],
 ];
 
 const currencyName = {
@@ -32,9 +32,9 @@ const currencyName = {
 };
 
 priceText.innerText = `Price: $${price}`;
-cidText.innerHTML = cid
+cidText.innerHTML = `<p style="font-weight:bold;margin-bottom:10px;">Cash In Drawer:</p>${cid
 	.map((e) => `<p>${currencyName[e[0]]}: $${e[1]}</p>`)
-	.join("");
+	.join("")}`;
 
 function checkCashRegister() {
 	if (!cashInput.value) {
@@ -69,11 +69,11 @@ function checkCashRegister() {
 		return;
 	}
 
-	if (totalCid === changeDue) {
-		changeDueContainer.style.display = "flex";
-		changeDueText.innerHTML = `<p>Status: CLOSED</p>`;
-		return;
+	if (totalCid === Number(changeDue)) {
+		result.status = "CLOSED";
 	}
+
+	console.log(result, totalCid, Number(changeDue));
 
 	for (let i = 0; i < cidReversed.length; i++) {
 		if (changeDue > denominations[i]) {
@@ -106,12 +106,11 @@ function checkCashRegister() {
 
 	cashInput.value = "";
 	priceText.innerText = `Price: $${price}`;
-	cidText.innerHTML = cid
+	cidText.innerHTML = `<p style="font-weight:bold;margin-bottom:10px;">Cash In Drawer:</p>${cid
 		.map((e) => `<p>${currencyName[e[0]]}: $${e[1]}</p>`)
-		.join("");
-
+		.join("")}`;
 	changeDueContainer.style.display = "flex";
-	changeDueText.innerHTML = `<p>Status: ${result.status}</p>
+	changeDueText.innerHTML = `<p>Status: <strong>${result.status}</strong></p>
 	${result.change.map((e) => `<p>${e[0]}: $${e[1]}</p>`).join("")}`;
 }
 
